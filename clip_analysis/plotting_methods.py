@@ -1,6 +1,22 @@
+from __future__ import print_function
+from __future__ import division
+
+# uncomment from this compatibility import list, as py3/py2 support progresses
+
+from __future__  import absolute_import
+from __future__  import unicode_literals
+from future import standard_library
+# from future.builtins import builtins
+# from future.builtins import utils
+# from future.utils import raise_with_traceback
+# from future.utils import iteritems
+
+import matplotlib
+matplotlib.use('Agg')
+
 from clip_analysis import parsers as p
 import matplotlib.pyplot as plt
-from itertools import izip
+# from itertools import izip  # deprecated python2 function
 import seaborn as sns
 import numpy as np
 import os
@@ -107,7 +123,7 @@ def plot_region_distribution(
 
     legend_builder = []
     legend_labels = []
-    for region, color in izip(
+    for region, color in zip(
             reversed(cumsum_events.index),
             sns.color_palette("Set2", len(cumsum_events.index))
     ):
@@ -149,4 +165,5 @@ def plot_region_distribution(
         \n-log10(p-value):{}, log2(fold-change):{}".format(
             l10p, l2fc)
     )
+    plt.tight_layout()
     f.savefig(out_file)
