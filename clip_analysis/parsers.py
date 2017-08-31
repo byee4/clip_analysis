@@ -21,11 +21,24 @@ from future import standard_library
 import pybedtools
 import os
 import functools
-import glob
 import pandas as pd
 
-REGIONS = ['noncoding_exon', '3utr', '5utr', 'intron', 'noncoding_intron',
-           'CDS', 'intergenic', '5utr_and_3utr']
+import seaborn as sns
+
+palette = sns.color_palette("hls", 8)
+
+REGION_COLORS = {
+    'noncoding_exon':palette[0],
+    '3utr':palette[1],
+    '5utr':palette[2],
+    'intron':palette[3],
+    'noncoding_intron':palette[4],
+    'CDS':palette[5],
+    'intergenic':palette[6],
+    '5utr_and_3utr':palette[7]
+}
+
+REGIONS = list(REGION_COLORS.keys())
 
 ANNOTATED_BED_HEADERS_ERIC = [
     'chrom', 'start', 'end', 'pv', 'fc', 'strand', 'annotation', 'gene'
@@ -251,18 +264,18 @@ def return_region_eric(row):
     except Exception as e:
         print(e, row)
 
-def get_cumulative_sum_counts(wd, l10p, l2fc, l10p_col=3, l2fc_col=4,
-                          out_dir=None, suffix='.annotated',
-                          format="eric", regions=REGIONS):
+def filter_and_get_cumulative_frac_counts(fns, l10p, l2fc,
+                                         l10p_col=3, l2fc_col=4,
+                                         out_dir=None,
+                                         format="eric", regions=REGIONS):
     """
     Returns a dataframe of the cumulative fraction of events within each
     region.
 
     Parameters
     ----------
-    wd : string
-        directory where the input_norm output is kept
-        (where to look for .annotated files)
+    fns : list
+        list of files
     out_dir : basestring
         directory where filtered input norm outputs are to be written.
     l10p : float
@@ -284,33 +297,31 @@ def get_cumulative_sum_counts(wd, l10p, l2fc, l10p_col=3, l2fc_col=4,
     Returns
     _______
     df : pandas.DataFrame()
-        dataframe of the cumualtive fraction of peaks within each region
+        dataframe of the cumulative fraction of peaks within each region
 
 
     """
-    df = get_counts(
-        wd, l10p, l2fc, l10p_col, l2fc_col,
-        out_dir, suffix,
-        format, regions
+    df = filter_and_get_counts(
+        fns, l10p, l2fc, l10p_col, l2fc_col,
+        out_dir, format, regions
     )
 
     dfdiv = df / df.sum()
     cumsum_events = dfdiv.cumsum()
     return cumsum_events
 
-def get_counts(wd, l10p, l2fc, l10p_col, l2fc_col,
-               out_dir, suffix, format, regions):
+def filter_and_get_counts(fns, l10p, l2fc, l10p_col, l2fc_col,
+               out_dir, format, regions):
     """
     Returns the number of peak counts for all regions
-    annotated by eric's pipeline. Gathers all files in 'wd' with 'suffix'
-    using glob and filters using l2fc and l10p parameters. If out_dir is not
+    annotated by eric's pipeline. Gathers all files in listed fns and
+    filters using l2fc and l10p parameters. If out_dir is not
     None, save these filtered BED files to directory.
 
     Parameters
     ----------
-    wd : string
-        directory where the input_norm output is kept
-        (where to look for .annotated files)
+    fns : list
+        list of files
     out_dir : basestring
         directory where filtered input norm outputs are to be written.
     l10p : float
@@ -321,8 +332,6 @@ def get_counts(wd, l10p, l2fc, l10p_col, l2fc_col,
         0-based int index of the column where l10p is described (default 3)
     l2fc_col : int
         0-based int index of the column where l2fc is described (default 4)
-    suffix : basestring
-        suffix to grep for in wd (default ".annotated")
     format : basestring
         either 'eric' or 'brian' describing which annotation pipeline was used.
         default 'eric'
@@ -337,17 +346,12 @@ def get_counts(wd, l10p, l2fc, l10p_col, l2fc_col,
     """
     samples = {}
 
-    for f in glob.glob(os.path.join(wd, '*{}'.format(suffix))):
+    for f in fns: # glob.glob(os.path.join(wd, '*{}'.format(suffix))):
         basename = os.path.basename(f)
         if out_dir is not None:
             out_file = os.path.join(
                 out_dir,
-                basename.replace(
-                    '{}'.format(suffix),
-                    '{}.filtered-p{}-f{}'.format(
-                        suffix, l10p, l2fc
-                    )
-                ),
+                basename + '_filtered-p{}-f{}.bed'.format(l10p, l2fc)
             )
         else:
             out_file = None
@@ -367,3 +371,4 @@ def get_counts(wd, l10p, l2fc, l10p_col, l2fc_col,
             if region not in samples[basename]:
                 samples[basename][region] = 0
     return pd.DataFrame(samples)
+

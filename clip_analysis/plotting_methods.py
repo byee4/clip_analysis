@@ -9,7 +9,7 @@ from future import standard_library
 # from future.builtins import builtins
 # from future.builtins import utils
 # from future.utils import raise_with_traceback
-# from future.utils import iteritems
+from future.utils import iteritems
 
 import matplotlib
 matplotlib.use('Agg')
@@ -29,7 +29,7 @@ matplotlib.rcParams['svg.fonttype'] = 'none'
 
 palette = sns.color_palette("hls", 8)
 
-REGIONS = {
+REGION_COLORS = {
     'noncoding_exon':palette[0],
     '3utr':palette[1],
     '5utr':palette[2],
@@ -40,11 +40,12 @@ REGIONS = {
     '5utr_and_3utr':palette[7]
 }
 
+REGIONS = list(REGION_COLORS.keys())
 
 def plot_ip_foldchange_over_input_reads(
         ip_l2fc, inp_reads_by_loc,
         out_file,
-        field_list=REGIONS,
+        field_list=REGION_COLORS,
         alpha=0.3
 ):
     """
@@ -67,7 +68,7 @@ def plot_ip_foldchange_over_input_reads(
     df = p.scatter_matrix(ip_l2fc, inp_reads_by_loc)
 
     f, ax = plt.subplots(figsize=(10, 10))
-    for region, color in field_list.iteritems():
+    for region, color in iteritems(field_list):
         if region in df.columns:
             ax.scatter(
                 np.log2(df[region] + 1),
@@ -86,8 +87,8 @@ def plot_ip_foldchange_over_input_reads(
     plt.savefig(out_file)
 
 
-def plot_region_distribution(
-        wd, out_file, l10p, l2fc,
+def filter_and_plot_region_distribution(
+        fns, out_file, l10p, l2fc,
         l10p_col=3, l2fc_col=4,
         trim_suffix=".peaks.l2inputnormnew.bed.compressed.bed.annotated",
         format="eric"
@@ -100,7 +101,8 @@ def plot_region_distribution(
 
     Parameters
     ----------
-    wd : basestring
+    fns : list
+        list of files
     out_file : basestring
         output file
     l10p : float
@@ -115,8 +117,8 @@ def plot_region_distribution(
 
     """
     out_dir = os.path.dirname(out_file)
-    cumsum_events = p.get_cumulative_sum_counts(
-        wd, l10p, l2fc, l10p_col, l2fc_col, out_dir, trim_suffix, format, REGIONS
+    cumsum_events = p.filter_and_get_cumulative_frac_counts(
+        fns, l10p, l2fc, l10p_col, l2fc_col, out_dir, format, REGIONS
     )
 
     f, ax = plt.subplots(figsize=(10, 10))
