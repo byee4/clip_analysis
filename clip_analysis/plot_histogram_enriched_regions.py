@@ -4,7 +4,6 @@ from matplotlib import rc
 
 from argparse import ArgumentParser
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import parsers as p
@@ -13,7 +12,7 @@ rc('text', usetex=False)
 matplotlib.rcParams['svg.fonttype'] = 'none'
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 
-### Default regions to look at;
+### Default REGIONS to look at;
 REGIONS = ['CDS', '3utr', '5utr']
 
 
@@ -21,14 +20,15 @@ def plot(
         l2fc_pval_enr,
         regions=REGIONS,
         xlabel='eCLIP log2 fold-enrichment',
-        ylabel='fraction of regions in bin',
+        ylabel='fraction of REGIONS in bin',
         xlim=(-10, 10),
-        ax=None
+        ax=None,
+        title="Enriched REGIONS"
 ):
     """
     Main plotting function.
 
-    Plots a histogram of enriched regions
+    Plots a histogram of enriched REGIONS
     """
     if ax is None:
         ax = plt.gca()
@@ -56,6 +56,7 @@ def plot(
     ax.set_xticks(np.arange(0, 100 + 1, 10.0))  # set ticks every 10
 
     ax.set_xticklabels(bins[::10])  # label every 10
+    ax.set_title(title)
     ax.legend()
     return ax
 
@@ -63,7 +64,7 @@ def plot(
 def make_plot(
     l2fc_pval_enr, out_file,
     regions, xlabel='eCLIP log2 fold-enrichment',
-    ylabel='fraction of regions in bin', xlim=(-10, 10)
+    ylabel='fraction of REGIONS in bin', xlim=(-10, 10)
 ):
 
     fig, ax = plt.subplots()
@@ -89,8 +90,8 @@ def main():
         required=True
     )
     parser.add_argument(
-        "--regions",
-        help="Specify which regions to plot (default: {})".format(
+        "--REGIONS",
+        help="Specify which REGIONS to plot (default: {})".format(
             REGIONS
         ),
         nargs='+',
@@ -106,7 +107,7 @@ def main():
     make_plot(
         l2fcwithpval_enr, out_file,
         regions=regions, xlabel='eCLIP log2 fold-enrichment',
-        ylabel='fraction of regions in bin', xlim=(-10, 10)
+        ylabel='fraction of REGIONS in bin', xlim=(-10, 10)
     )
 
 if __name__ == "__main__":

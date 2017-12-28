@@ -16,13 +16,13 @@ matplotlib.rcParams['svg.fonttype'] = 'none'
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 
 def plot(
-        df, ax=None
+        df, ax=None, title="Fraction of Peaks among RBPs"
 ):
     """
 
     :param ax: 
     :param df: pandas.DataFrame()
-        dataframe containing samples (columns) and regions (rows)
+        dataframe containing samples (columns) and REGIONS (rows)
         Use peak_parsers.get_counts() to get this dataframe
     :return:
     """
@@ -66,7 +66,7 @@ def plot(
     ax.set_ylabel("Fraction of Peaks", fontsize=14)
     [tick.set_fontsize(12) for tick in ax.get_xticklabels()]
     ax.set_title(
-        "Fraction of Peaks among RBPs"
+        title
     )
     return ax
 

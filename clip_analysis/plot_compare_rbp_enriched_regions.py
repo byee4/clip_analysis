@@ -20,7 +20,7 @@ rc('text', usetex=False)
 matplotlib.rcParams['svg.fonttype'] = 'none'
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 
-### Default regions to look at;
+### Default REGIONS to look at;
 REGIONS = ['CDS', '3utr', '5utr', 'intron']
 
 
@@ -31,7 +31,7 @@ def plot(
         regions=REGIONS,
         equivalent_axis=True,
         drop_all_nans=True,
-        ax=None
+        ax=None, title="Per-gene enrichment correlations"
 ):
     """
     Plots region enriched values for 2 replicates. 
@@ -44,7 +44,7 @@ def plot(
         if True, this will make the figure axes equal to each other.
         This generally makes it easier to see any skews between reps.
     :param regions: list
-        List of regions to plot over each other.
+        List of REGIONS to plot over each other.
         This list needs to match the columns listed in each l2fc_pval_enr file.
     :param drop_all_nans: bool
         if True, drops genes which have NaN values in one or both replicates.
@@ -63,7 +63,7 @@ def plot(
     max_lim = -1
     buf = 1
 
-    # sets default regions:
+    # sets default REGIONS:
     if regions is None:
         regions = ['intron', 'CDS', '3utr', '5utr']
 
@@ -111,7 +111,7 @@ def plot(
     if equivalent_axis:
         ax.set_xlim(min_lim - buf, max_lim + buf)
         ax.set_ylim(min_lim - buf, max_lim + buf)
-
+    ax.set_title(title)
     ax.legend()
     return ax
 
@@ -139,8 +139,8 @@ def main():
         default=''
     )
     parser.add_argument(
-        "--regions",
-        help="Specify which regions to plot (default: {})".format(
+        "--REGIONS",
+        help="Specify which REGIONS to plot (default: {})".format(
             REGIONS
         ),
         nargs='+',

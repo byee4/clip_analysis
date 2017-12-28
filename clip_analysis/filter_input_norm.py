@@ -7,44 +7,39 @@ log2 foldchange as the 'score' column).
 
 """
 import argparse
+import os
+from clip_analysis import parsers
+import pybedtools
 
 
-def filter(input_file, output_file, l10p, l2fc, l10p_col=3, l2fc_col=4):
-    """
-    Filters an input_file to have only peaks that pass l10p and l2fc cutoffs.
+def filter(peaks_file, ko_peaks_file, output_file, l10p, l2fc):
 
-    :param input_file: basestring
-    :param output_file: basestring
-    :param l10p: float
-    :param l2fc: float
-    :return 0:
-    """
-    o = open(output_file, 'w')
-    with open(input_file, 'r') as i:
-        for line in i:
-            line = line.split('\t')
-            p = float(line[l10p_col])
-            f = float(line[l2fc_col])
-            if p >= l10p and f >= l2fc:
-                o.write('\t'.join(line))
-    return 0
+    df = parsers.filter_input_norm(peaks_file, l10p, l2fc)
+    if ko_peaks_file is not None:
+        print("removing {} from {}".format(
+            os.path.basename(ko_peaks_file), os.path.basename(peaks_file))
+        )
+        wt_peaks = pybedtools.BedTool.from_dataframe(df)
+        ko_peaks = pybedtools.BedTool(ko_peaks_file)
+        df = parsers.remove_peaks(wt_peaks, ko_peaks)
+
+    df.to_csv(
+        output_file, sep='\t', header=False, index=False
+    )
 
 def main():
     """
     Main program.
-
     """
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "--input",
         required=True,
-        type=basestring,
     )
     parser.add_argument(
         "--output",
-        required=False,
-        type=basestring,
+        required=True,
     )
     parser.add_argument(
         "--l10p",
@@ -58,13 +53,20 @@ def main():
         type=int,
         default=3
     )
+    parser.add_argument(
+        "--ko_peaks",
+        required=False,
+        default=None
+    )
     args = parser.parse_args()
 
     l10p = args.l10p
     l2fc = args.l2fc
     i = args.input
-    o = args.output if args.output is not None else i + '.filtered.bed'
-    filter(i, o, l10p, l2fc)
+    o = args.output
+    ko_peaks = args.ko_peaks
+
+    filter(i, ko_peaks, o, l10p, l2fc)
 
 if __name__ == "__main__":
     main()

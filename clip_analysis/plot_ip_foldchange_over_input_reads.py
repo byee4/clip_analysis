@@ -14,24 +14,15 @@ matplotlib.rcParams['svg.fonttype'] = 'none'
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 
 ### Set default color scheme for stuff
-palette = sns.color_palette("hls", 8)
-
-REGIONS = {
-    'noncoding_exon': palette[0],
-    '3utr': palette[1],
-    '5utr': palette[2],
-    'intron': palette[3],
-    'noncoding_intron': palette[4],
-    'CDS': palette[5],
-    'intergenic': palette[6],
-    '5utr_and_3utr': palette[7]
-}
+PALETTE = sns.color_palette("hls", 8)
+REGIONS = ['CDS','3utr','5utr']
 
 def plot(
     l2fcwithpval_enr, inp_reads_by_loc,
     ax=None,
     regions=REGIONS,
-    alpha=0.3
+    colors=PALETTE,
+    alpha=0.3, title="Fold change over input reads"
 ):
     """
     Plots the region-based analysis of genes enriched in IP over
@@ -53,24 +44,27 @@ def plot(
     :param ax: 
 
     """
+    i = 0  # color counter
     df = p.scatter_matrix(l2fcwithpval_enr, inp_reads_by_loc)
     if ax is None:
         ax = plt.gca()
-    for region, color in regions.iteritems():
+    for region in regions:
         if region in df.columns:
             ax.scatter(
                 np.log2(df[region] + 1),
                 df["{} l2fc".format(region)],
-                color=color,
+                color=colors[i],
                 alpha=alpha
             )
         else:
             print("region {} not found in dataframe matrix".format(
                 region
             ))
+        i += 1
     ax.set_title("Region-based analysis of genes enriched")
     ax.set_xlabel("Reads in SMInput (log2)")
     ax.set_ylabel("Fold Enrichment (log2)")
+    ax.set_title(title)
     ax.legend()
     return ax
 

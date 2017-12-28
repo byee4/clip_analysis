@@ -3,14 +3,14 @@ matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-import os
 import argparse
 import parsers as p
 import plot_compare_rbp_enriched_regions
 import plot_histogram_enriched_regions
-import plot_motifs
+import plot_kmer_enrichment
 import plot_region_distribution
 import plot_ip_foldchange_over_input_reads
+import plot_repetitive_elements
 import seaborn as sns
 
 ### do this to avoid making tons of dots in svg files:
@@ -24,18 +24,25 @@ rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 palette = sns.color_palette("hls", 8)
 
 
-def plot_all(l2fcwithpval_enr_r1, l2fcwithpval_enr_r2, inp_reads_by_loc_r1,
-             inp_reads_by_loc_r2, out_file, annotated_files):
-    nrows = 3
-    ncols = 2
+def plot_all(
+    l2fcwithpval_enr_r1, l2fcwithpval_enr_r2,
+    inp_reads_by_loc_r1, inp_reads_by_loc_r2,
+    pickle_r1, pickle_r2,
+    rep_element_parsed_r1_ip, rep_element_parsed_r1_input,
+    rep_element_parsed_r2_ip, rep_element_parsed_r2_input,
+    motifs, regions, out_file, annotated_files, suptitle
+):
+
+    nrows = 5
+    ncols = 3
 
     full_grid = gridspec.GridSpec(
         nrows, ncols,
         height_ratios=[1 for i in range(nrows)],
         width_ratios=[1 for i in range(ncols)],
-        hspace=0.5, wspace=3
+        hspace=0.5, wspace=2
     )
-    fig = plt.figure(figsize=(15, 25))
+    fig = plt.figure(figsize=(20, 20))
 
     map_rows = []
 
@@ -45,28 +52,74 @@ def plot_all(l2fcwithpval_enr_r1, l2fcwithpval_enr_r2, inp_reads_by_loc_r1,
             subplot_spec=full_grid[row, :])
         )
 
-    plot_histogram_enriched_regions.plot(
-        l2fcwithpval_enr_r1, ax=plt.subplot(map_rows[0][0])
-    )
-    plot_histogram_enriched_regions.plot(
-        l2fcwithpval_enr_r2, ax=plt.subplot(map_rows[0][1])
-    )
+    if l2fcwithpval_enr_r1 is not None:
+        plot_histogram_enriched_regions.plot(
+            l2fcwithpval_enr_r1, ax=plt.subplot(map_rows[0][0]),
+            title='Rep 1 enriched REGIONS', regions=regions
+        )
 
-    plot_ip_foldchange_over_input_reads.plot(
-        l2fcwithpval_enr_r1, inp_reads_by_loc_r1,
-        ax=plt.subplot(map_rows[1][0])
-    )
-    plot_ip_foldchange_over_input_reads.plot(
-        l2fcwithpval_enr_r2, inp_reads_by_loc_r2,
-        ax=plt.subplot(map_rows[1][1])
-    )
-    plot_compare_rbp_enriched_regions.plot(
-        l2fcwithpval_enr_r1, l2fcwithpval_enr_r2,
-        ax=plt.subplot(map_rows[2][0])
-    )
+    if l2fcwithpval_enr_r2 is not None:
+        plot_histogram_enriched_regions.plot(
+            l2fcwithpval_enr_r2, ax=plt.subplot(map_rows[0][1]),
+            title='Rep 2 enriched REGIONS', regions=regions
+        )
 
-    counts = p.get_counts(annotated_files)
-    plot_region_distribution.plot(counts, ax=plt.subplot(map_rows[2][1]))
+    if l2fcwithpval_enr_r1 is not None and inp_reads_by_loc_r1 is not None:
+        plot_ip_foldchange_over_input_reads.plot(
+            l2fcwithpval_enr_r1, inp_reads_by_loc_r1,
+            ax=plt.subplot(map_rows[1][0]),
+            title='Rep 1 fold change over input reads',
+            regions=regions
+        )
+
+    if l2fcwithpval_enr_r2 is not None and inp_reads_by_loc_r2 is not None:
+        plot_ip_foldchange_over_input_reads.plot(
+            l2fcwithpval_enr_r2, inp_reads_by_loc_r2,
+            ax=plt.subplot(map_rows[1][1]),
+            title='Rep 2 fold change over input reads',
+            regions=regions
+        )
+
+    if l2fcwithpval_enr_r1 is not None and l2fcwithpval_enr_r2 is not None:
+        plot_compare_rbp_enriched_regions.plot(
+            l2fcwithpval_enr_r1, l2fcwithpval_enr_r2,
+            ax=plt.subplot(map_rows[2][0]),
+            title='Per-gene enrichment correlations',
+            regions=regions
+        )
+
+    if annotated_files is not None:
+        counts = p.get_counts(annotated_files)
+        plot_region_distribution.plot(
+            counts, ax=plt.subplot(map_rows[2][1]),
+            title='Fraction of Peaks among RBPs'
+        )
+
+    if pickle_r1 is not None and pickle_r2 is not None:
+        zscores_all_r1 = p.read_kmer_enrichment_from_pickle(
+            pickle_r1, 'all', col_name='Rep1'
+        )
+        zscores_all_r2 = p.read_kmer_enrichment_from_pickle(
+            pickle_r2, 'all', col_name='Rep2'
+        )
+        plot_kmer_enrichment.plot_zscores(
+            zscores_all_r1, zscores_all_r2, label='all 6mers',
+            ax=plt.subplot(map_rows[3][0]),
+            highlights=motifs
+        )
+
+    if rep_element_parsed_r1_ip is not None and rep_element_parsed_r1_input is not None:
+        plot_repetitive_elements.plot(
+            rep_element_parsed_r1_ip, rep_element_parsed_r1_input,
+            ax=plt.subplot(map_rows[4][0])
+        )
+    if rep_element_parsed_r2_ip is not None and rep_element_parsed_r2_input is not None:
+        plot_repetitive_elements.plot(
+            rep_element_parsed_r2_ip, rep_element_parsed_r2_input,
+            ax=plt.subplot(map_rows[4][1])
+        )
+    plt.tight_layout(pad=5)
+    fig.suptitle(suptitle)
     fig.savefig(out_file)
 
 
@@ -75,46 +128,116 @@ def main():
 
     parser.add_argument(
         "--l2fcwithpval_enr_r1",
-        required=True
+        required=False,
+        default=None
     )
     parser.add_argument(
         "--l2fcwithpval_enr_r2",
         required=False,
-        default=''
+        default=None
     )
     parser.add_argument(
         "--inp_reads_by_loc_r1",
-        required=True
+        required=False,
+        default=None
     )
     parser.add_argument(
         "--inp_reads_by_loc_r2",
         required=False,
-        default=''
+        default=None
+    )
+    parser.add_argument(
+        "--pickle_r1",
+        required=False,
+        default=None
+    )
+    parser.add_argument(
+        "--pickle_r2",
+        required=False,
+        default=None
+    )
+    parser.add_argument(
+        "--rep_element_parsed_r1_ip",
+        required=False,
+        default=None
+    )
+    parser.add_argument(
+        "--rep_element_parsed_r1_input",
+        required=False,
+        default=None
+    )
+    parser.add_argument(
+        "--rep_element_parsed_r2_ip",
+        required=False,
+        default=None
+    )
+    parser.add_argument(
+        "--rep_element_parsed_r2_input",
+        required=False,
+        default=None
     )
     parser.add_argument(
         "--annotated_files",
-        required=True,
-        nargs='+'
+        required=False,
+        nargs='+',
+        default=None
+    )
+    parser.add_argument(
+        "--motifs",
+        required=False,
+        nargs='+',
+        default=[]
+    )
+    parser.add_argument(
+        "--suptitle",
+        required=False,
+        default=''
     )
     parser.add_argument(
         "--out_file",
         required=True,
     )
-
+    parser.add_argument(
+        "--regions",
+        required=False,
+        nargs='+',
+        default=['CDS','3utr','5utr','intron']
+    )
     # Process arguments
     args = parser.parse_args()
     l2fcwithpval_enr_r1 = args.l2fcwithpval_enr_r1
     l2fcwithpval_enr_r2 = args.l2fcwithpval_enr_r2
     inp_reads_by_loc_r1 = args.inp_reads_by_loc_r1
     inp_reads_by_loc_r2 = args.inp_reads_by_loc_r2
+    rep_element_parsed_r1_ip = args.rep_element_parsed_r1_ip
+    rep_element_parsed_r1_input = args.rep_element_parsed_r1_input
+    rep_element_parsed_r2_ip = args.rep_element_parsed_r2_ip
+    rep_element_parsed_r2_input = args.rep_element_parsed_r2_input
     out_file = args.out_file
     annotated_files = args.annotated_files
+    pickle_r1 = args.pickle_r1
+    pickle_r2 = args.pickle_r2
+    suptitle = args.suptitle
+    motifs = args.motifs
+    regions = args.regions
 
     # main func
     plot_all(
-        l2fcwithpval_enr_r1, l2fcwithpval_enr_r2,
-        inp_reads_by_loc_r1, inp_reads_by_loc_r2,
-        out_file, annotated_files
+        l2fcwithpval_enr_r1=l2fcwithpval_enr_r1,
+        l2fcwithpval_enr_r2=l2fcwithpval_enr_r2,
+        inp_reads_by_loc_r1=inp_reads_by_loc_r1,
+        inp_reads_by_loc_r2=inp_reads_by_loc_r2,
+        pickle_r1=pickle_r1,
+        pickle_r2=pickle_r2,
+        rep_element_parsed_r1_ip=rep_element_parsed_r1_ip,
+        rep_element_parsed_r1_input=rep_element_parsed_r1_input,
+        rep_element_parsed_r2_ip=rep_element_parsed_r2_ip,
+        rep_element_parsed_r2_input=rep_element_parsed_r2_input,
+        motifs=motifs,
+        regions=regions,
+        out_file=out_file,
+        annotated_files=annotated_files,
+        suptitle=suptitle
     )
 
 

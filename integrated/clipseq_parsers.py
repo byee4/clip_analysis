@@ -1,12 +1,9 @@
-import cPickle as pickle
-import numpy as np
-import os
-import pandas as pd
 import pybedtools
-from collections import defaultdict, OrderedDict
-
-from clip_analysis_legacy import kmerdiff
-
+import pandas as pd
+import numpy as np
+import cPickle as pickle
+import os
+from collections import defaultdict
 
 def split_single_cols(df, col, sep='|'):
     """
@@ -290,7 +287,7 @@ def get_counts_df(dfs):
     return merged
 
 def get_counts(fns, headers=None, src='brian', basename=True):
-    dfs = OrderedDict()
+    dfs = {}
     for fn in fns:
         if basename:
             key = os.path.basename(fn)
@@ -345,92 +342,19 @@ def read_parsed(fn):
     element_df : pandas.DataFrame
         dataframe of unique repetitive/unique elements that each unique read
         mapped to.
-    total_reads : int
-    total_genomic_reads : int
-    total_usable_reads : int
-    total_repfamily_reads : int
     """
-    df = pd.read_table(fn, names=[
-        'total_or_element', 'element', 'read_num',
-        'clip_rpr', 'annotation', 'gene'
+    df = pd.read_table(fn, comment='#', names=[
+        'total_or_element','element','read_num',
+        'percentage','annotation','gene'
     ])
-    total_reads = df[
-        (df['total_or_element'] == '#READINFO') & (df['element'] == 'AllReads')
-        ]['read_num'].values[0]
-    total_genomic_reads = df[
-        (df['total_or_element'] == '#READINFO') & (
-        df['element'] == 'GenomicReads')
-        ]['read_num'].values[0]
-    total_usable_reads = df[
-        (df['total_or_element'] == '#READINFO') & (
-        df['element'] == 'UsableReads')
-        ]['read_num'].values[0]
-    total_repfamily_reads = df[
-        (df['total_or_element'] == '#READINFO') & (
-        df['element'] == 'RepFamilyReads')
-        ]['read_num'].values[0]
-
-    total_df = df[df['total_or_element'] == 'TOTAL'][
-        ['element', 'read_num', 'clip_rpr']
+    total_df = df[df['total_or_element']=='TOTAL'][
+        ['element','read_num','percentage']
     ]
-    element_df = df[df['total_or_element'] == 'ELEMENT'][
-        ['element', 'read_num', 'clip_rpr']
+    element_df = df[df['total_or_element']=='ELEMENT'][
+        ['element','read_num','percentage']
     ]
-    return total_df, element_df, \
-           total_reads, total_genomic_reads, \
-           total_usable_reads, total_repfamily_reads
+    return total_df, element_df
 
-
-def return_l2fc_entropy_from_parsed(ip_parsed, input_parsed, nopipes=True):
-    """
-    From 2 parsed rep element pipeline outputs (ip and input),
-    compute fold change and information content. Usually fold changes of > 3+
-    and information content of 0.1? can be considered enriched.
-
-    Parameters
-    ----------
-    ip_parsed : str
-        filename of the ip parsed string
-    input_parsed : str
-        filename of the input parsed string
-    nopipes : bool
-        if True, return just the uniquely mapped rep family mappings
-        if False, return all unique and nonunique
-    Returns
-    -------
-    merged : Pandas.DataFrame
-        table consisting of fold enrichment and information content params
-    """
-    total_ip, _, _, _, _, _ = read_parsed(ip_parsed)
-    total_input, _, _, _, total_input_usable_reads, _ = read_parsed(
-        input_parsed)
-    # a pipe indicates read totals mapping to more than one element/rep family.
-    if nopipes:
-        total_ip = total_ip[total_ip['element'].str.contains('\|') == False]
-        total_input = total_input[
-            total_input['element'].str.contains('\|') == False]
-    # index columns by their element
-    total_ip.set_index('element', inplace=True)
-    total_input.set_index('element', inplace=True)
-    # rename the IP and input columns separately
-    total_ip.columns = ["IP_{}".format(c) for c in total_ip.columns]
-    total_input.columns = ["Input_{}".format(c) for c in total_input.columns]
-    # merge the two on element id
-    merged = pd.merge(total_ip, total_input, how='left', left_index=True,
-                      right_index=True)
-    # deal with missing values
-    merged['Input_read_num'].fillna(
-        1, inplace=True
-    )  # Pseudocount all missing values
-    merged['Input_clip_rpr'].fillna(
-        merged['Input_read_num'] / (total_input_usable_reads), inplace=True)
-    # calculate fold enrichment and information content
-    merged['Fold_enrichment'] = merged['IP_clip_rpr'].div(
-        merged['Input_clip_rpr'])
-    merged['Information_content'] = merged['IP_clip_rpr'] * np.log2(
-        merged['IP_clip_rpr'].div(merged['Input_clip_rpr']))
-
-    return merged
 
 # LEGACY functions to handle some of the old gabe and eric stuff #
 
@@ -450,22 +374,9 @@ def read_kmer_enrichment_from_pickle(
     :return df: pandas.DataFrame
     """
     loaded = pickle.load(open(pickle_file, 'rb'))
-    try:
-        df = pd.DataFrame(loaded['kmer_results'][region][k]).T
-    except KeyError:
-        df = pd.DataFrame(loaded['kmer_results'][region][str(k)]).T
+    df = pd.DataFrame(loaded['kmer_results'][region][k]).T
     df.columns = ['fg', 'bg', col_name]
     return df[[col_name]]
-
-def extract_kmer_enrichment_from_pickle_and_save(pickle_file, out_file):
-    df = pd.read_table(pickle_file)
-    df.to_csv(out_file, sep='\t', index=True, headers=True)
-
-def get_top_enriched_kmers(merged, top=5):
-    average_zscore = merged.mean(axis=1)
-    return list(
-        average_zscore.sort_values(ascending=False).iloc[:top].index
-    )
 
 def bed6_to_bed8(interval):
     """
