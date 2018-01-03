@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 """
-basic module to use as an example.
+Generates the fraction information content figure for the eCLIP 
+analysis paper. 
 """
 
 import argparse

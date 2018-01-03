@@ -12,7 +12,6 @@ import matplotlib.patches as patches
 import parsers as p
 ### do this to avoid making tons of dots in svg files:
 
-
 rc('text', usetex=False)
 matplotlib.rcParams['svg.fonttype'] = 'none'
 rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})

@@ -30,7 +30,8 @@ def plot_all(
     pickle_r1, pickle_r2,
     rep_element_parsed_r1_ip, rep_element_parsed_r1_input,
     rep_element_parsed_r2_ip, rep_element_parsed_r2_input,
-    motifs, regions, out_file, annotated_files, suptitle
+    motifs, regions, out_file, annotated_files, annotation_source,
+    suptitle
 ):
 
     nrows = 5
@@ -89,7 +90,7 @@ def plot_all(
         )
 
     if annotated_files is not None:
-        counts = p.get_counts(annotated_files)
+        counts = p.get_counts(annotated_files, src=annotation_source)
         plot_region_distribution.plot(
             counts, ax=plt.subplot(map_rows[2][1]),
             title='Fraction of Peaks among RBPs'
@@ -118,7 +119,10 @@ def plot_all(
             rep_element_parsed_r2_ip, rep_element_parsed_r2_input,
             ax=plt.subplot(map_rows[4][1])
         )
-    plt.tight_layout(pad=5)
+    try:
+        plt.tight_layout(pad=5)
+    except ValueError:
+        pass
     fig.suptitle(suptitle)
     fig.savefig(out_file)
 
@@ -183,6 +187,11 @@ def main():
         default=None
     )
     parser.add_argument(
+        "--annotation_script",
+        required=False,
+        default='brian'
+    )
+    parser.add_argument(
         "--motifs",
         required=False,
         nargs='+',
@@ -215,6 +224,7 @@ def main():
     rep_element_parsed_r2_input = args.rep_element_parsed_r2_input
     out_file = args.out_file
     annotated_files = args.annotated_files
+    annotated_source = args.annotation_script
     pickle_r1 = args.pickle_r1
     pickle_r2 = args.pickle_r2
     suptitle = args.suptitle
@@ -237,6 +247,7 @@ def main():
         regions=regions,
         out_file=out_file,
         annotated_files=annotated_files,
+        annotation_source=annotation_source,
         suptitle=suptitle
     )
 

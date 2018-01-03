@@ -1,3 +1,11 @@
+'''
+Created on December 31st 2017
+
+A template that can be used to extend the clip_analysis master figure.
+
+@author: brianyee
+'''
+
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import rc
@@ -32,7 +40,7 @@ def plot(
 ):
     if ax is None:
         ax = plt.gca()
-
+    ### PLOTTING CODE GOES HERE ###
     ax.set_title(title)
     ax.legend()
     return ax

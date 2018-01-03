@@ -72,9 +72,9 @@ def plot(
 
 
 def make_plot(
-    annotated_files, out_file
+    annotated_files, annotation_script, out_file
 ):
-    df = p.get_counts(annotated_files)
+    df = p.get_counts(annotated_files, src=annotation_script)
     fig, ax = plt.subplots()
 
     plot(
@@ -94,13 +94,19 @@ def main():
         "--out_file",
         required=True
     )
+    parser.add_argument(
+        "--annotation_script",
+        required=False,
+        default='brian',
+        help="either from annotator \'brian\' (default) or legacy \'eric\'"
+    )
 
     args = parser.parse_args()
     annotated_files = args.annotated_files
     out_file = args.out_file
-
+    annotation_script = args.annotation_script
     make_plot(
-        annotated_files, out_file
+        annotated_files, annotation_script, out_file
     )
 
 if __name__ == "__main__":
