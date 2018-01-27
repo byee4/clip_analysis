@@ -247,7 +247,7 @@ def main():
         regions=regions,
         out_file=out_file,
         annotated_files=annotated_files,
-        annotation_source=annotation_source,
+        annotation_source=annotated_source,
         suptitle=suptitle
     )
 

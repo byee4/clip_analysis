@@ -55,7 +55,7 @@ def plot_zscores(rep1_scores, rep2_scores, highlights, label,
 
     # append and automatically plot the top enriched kmers
     top_enriched_kmers = p.get_top_enriched_kmers(merged)
-    for kmer in top_enriched_kmers:
+    for kmer in reversed(top_enriched_kmers):  # reversed ensures highest in 'front'
         highlights.append(kmer)
 
     if len(highlights) > 0:  # we have some kmers of interest to highlights

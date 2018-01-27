@@ -45,21 +45,37 @@ def split_l2fcwithpval_enr(df, discard = True):
     return df
 
 
-def read_l2fcwithpval_enr(fn):
+def read_l2fcwithpval_enr(fn, reps=1):
     """
     Reads in a *l2fcwithpval_enr.csv file and returns a dataframe.
 
-    :param fn: 
+    :param fn: basestring
+    :param encode: boolean
+        if True, parse using 2IP/1Input style
+        if False, parse assuming 1IP/1Input
+    :param reps: int
+        number of replicates that the "combined.csv.l2fcwithpval_enr.csv" has
     :return: 
     """
     df = pd.read_table(
         fn,
         index_col=0,
     )
-    df = split_l2fcwithpval_enr(df)
-    df = df.replace('NaN', np.nan)
-    df = df.apply(pd.to_numeric)
-    return df
+    if reps == 1:
+        df = split_l2fcwithpval_enr(df)
+        df = df.replace('NaN', np.nan)
+        df = df.apply(pd.to_numeric)
+        return df
+    else:
+        dfs = []
+        for rep in range(1, reps+1):
+            substr = '_{:02d}'.format(rep)
+            dfx = df[[c for c in df.columns if substr in c]]
+            dfx = split_l2fcwithpval_enr(dfx)
+            dfx = dfx.replace('NaN', np.nan)
+            dfx = dfx.apply(pd.to_numeric)
+            dfs.append(dfx)
+        return dfs
 
 def filter_l2fcwithpval_enr(l2fcwithpval_enr, region, l10p, l2fc):
     """
