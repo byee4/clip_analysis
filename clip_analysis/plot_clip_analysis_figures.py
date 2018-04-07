@@ -10,7 +10,7 @@ import plot_histogram_enriched_regions
 import plot_kmer_enrichment
 import plot_region_distribution
 import plot_ip_foldchange_over_input_reads
-import plot_repetitive_elements
+import plot_repetitive_elements_bar
 import seaborn as sns
 
 ### do this to avoid making tons of dots in svg files:
@@ -110,12 +110,12 @@ def plot_all(
         )
 
     if rep_element_parsed_r1_ip is not None and rep_element_parsed_r1_input is not None:
-        plot_repetitive_elements.plot(
+        plot_repetitive_elements_bar.plot(
             rep_element_parsed_r1_ip, rep_element_parsed_r1_input,
             ax=plt.subplot(map_rows[4][0])
         )
     if rep_element_parsed_r2_ip is not None and rep_element_parsed_r2_input is not None:
-        plot_repetitive_elements.plot(
+        plot_repetitive_elements_bar.plot(
             rep_element_parsed_r2_ip, rep_element_parsed_r2_input,
             ax=plt.subplot(map_rows[4][1])
         )

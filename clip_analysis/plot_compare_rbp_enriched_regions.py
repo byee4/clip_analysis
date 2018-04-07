@@ -139,7 +139,7 @@ def main():
         default=''
     )
     parser.add_argument(
-        "--REGIONS",
+        "--regions",
         help="Specify which REGIONS to plot (default: {})".format(
             REGIONS
         ),

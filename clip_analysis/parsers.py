@@ -13,8 +13,8 @@ def split_single_cols(df, col, sep='|'):
     Splits a df['col'] into two separated by 'sep'
     ie. -0.9201|0.00000 -> -0.9201  0.00000
     """
-    df["{} l2fc".format(col.split(sep)[1])], \
-    df["{} l10p".format(col.split(sep)[1])] = zip(
+    df["{} l2fc".format('-'.join(col.split(sep)[1:]))], \
+    df["{} l10p".format('-'.join(col.split(sep)[1:]))] = zip(
         *df[col].map(lambda x: x.split(sep))
     )
     return df
