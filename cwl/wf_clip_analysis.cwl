@@ -15,23 +15,21 @@ requirements:
 
 inputs:
 
-  # REQUIRED IDR PEAKS INPUTS
 
-  rep1_clip_bam_file:
-    type: File
-  rep1_input_bam_file:
-    type: File
-  rep1_peaks_bed_file:
-    type: File
+  ### ANNOTATOR INPUTS ###
 
-  rep2_clip_bam_file:
+
+  species:
+    type: string
+  peak_file:
     type: File
-  rep2_input_bam_file:
-    type: File
-  rep2_peaks_bed_file:
+  gtfdb_file:
     type: File
 
-  # REQUIRED REPEAT MAPPING INPUTS
+
+  ### REQUIRED REPEAT MAPPING INPUTS ###
+
+
   barcode1r1FastqGz:
     type: File
   barcode1r2FastqGz:
@@ -67,99 +65,124 @@ inputs:
   repMaskBEDFile:
     type: File
 
-  # ANNOTATOR DB
-  dataset:
-    type: string
 
-  gtf_db:
+  ### REGION LEVEL ENRICHMENT INPUTS ###
+
+
+  clip_bam_file:
+    type: File
+  input_bam_file:
     type: File
 
-  # FINAL IDR OUTPUTS
 
-  merged_peaks_bed:
-    type: string
-  merged_peaks_custombed:
-    type: string
+  ### MOTIF ANALYSIS INPUTS ###
 
 
 outputs:
 
 
-  rep1_clip_read_num:
-    type: File
-    outputSource: rep1_input_norm_and_entropy/clip_read_num
+  ### ANNOTATED OUTPUTS ###
 
+
+  output_annotated_file:
+    type: File
+    outputSource: step_annotate_peaks/output_annotated
+
+
+  ### REPEAT MAPPING OUTPUTS ###
+
+
+  output_repeat_ip_parsed_file:
+    type: File
+    outputSource: step_repeat_mapping/output_ip_parsed
+
+  output_repeat_input_parsed_file:
+    type: File
+    outputSource: step_repeat_mapping/output_input_parsed
+
+  output_ip_concatenated_pre_rmDup_sam_file:
+    type: File
+    outputSource: step_repeat_mapping/output_ip_concatenated_pre_rmDup_sam_file
+
+  output_input_concatenated_pre_rmDup_sam_file:
+    type: File
+    outputSource: step_repeat_mapping/output_input_concatenated_pre_rmDup_sam_file
+
+  output_ip_concatenated_rmDup_sam_file:
+    type: File
+    outputSource: step_repeat_mapping/output_ip_concatenated_rmDup_sam_file
+
+  output_input_concatenated_rmDup_sam_file:
+    type: File
+    outputSource: step_repeat_mapping/output_input_concatenated_rmDup_sam_file
+
+
+  ### REGION LEVEL ENRICHMENT OUTPUTS ###
+
+
+  output_clip_broad_feature_counts_file:
+    type: File
+    outputSource: step_region_level_enrichment/clipBroadFeatureCountsFile
+
+  output_input_broad_feature_counts_file:
+    type: File
+    outputSource: step_region_level_enrichment/inputBroadFeatureCountsFile
+
+  output_l2fc_with_pval_enr_file:
+    type: File
+    outputSource: step_region_level_enrichment/l2fcWithPvalEnrFile
+
+
+  ### MOTIF ANALYSIS OUTPUTS ###
+
+
+  output_pickle_file:
+    type: File
+    outputSource: step_motif_analysis/output_pickle_file
+
+  output_homer_dir:
+    type: Directory
+    outputSource: step_motif_analysis/output_homer_dir
+
+  output_homer_svg_file:
+    type: File
+    outputSource: step_motif_analysis/output_homer_svg_file
+
+  output_annotated_file:
+    type: File
+    outputSource: step_annotate_peaks/output_annotated
 
 steps:
 
-  step_merge_peaks:
-    run: wf_get_reproducible_eclip_peaks.cwl
+  step_annotate_peaks:
+    run: annotate.cwl
     in:
-      rep1_clip_bam_file: rep1_clip_bam_file
-      rep2_clip_bam_file: rep2_clip_bam_file
-      rep1_input_bam_file: rep1_input_bam_file
-      rep2_input_bam_file: rep2_input_bam_file
-      rep1_peaks_bed_file: rep1_peaks_bed_file
-      rep2_peaks_bed_file: rep2_peaks_bed_file
-      merged_peaks_bed: merged_peaks_bed
-      merged_peaks_custombed: merged_peaks_custombed
+      peak_file: peak_file
+      gtfdb_file: gtf_db
+      species: species
     out:
-      - rep1_clip_read_num
-      - rep2_clip_read_num
-      - rep1_input_read_num
-      - rep2_input_read_num
-      - rep1_input_normed_bed
-      - rep2_input_normed_bed
-      - rep1_entropy_full
-      - rep2_entropy_full
-      - idr_output
-      - idr_output_bed
-      - rep1_idr_output_input_normed_bed
-      - rep2_idr_output_input_normed_bed
-      - rep1_idr_output_input_normed_full
-      - rep2_idr_output_input_normed_full
-      - rep1_reproducing_peaks_full
-      - rep2_reproducing_peaks_full
-      - merged_peaks_bed_file
-      - merged_peaks_custombed_file
-      - reproducing_peaks_count
-
-  step_annotate_idr_peaks:
-    run: annotate.cwl
-    in:
-      input: merged_peaks_bed_file
-      gtfdb: gtf_db
-
-  step_annotate_rep1_peaks:
-    run: annotate.cwl
-    in:
-      input: rep2_peaks_bed_file
-      gtfdb: gtf_db
-
-  step_annotate_rep2_peaks:
-    run: annotate.cwl
-    in:
-      input: rep2_peaks_bed_file
-      gtfdb: gtf_db
+      output_annotated
 
   step_repeat_mapping:
+    doc: |
+      performs repeat mapping
     run: wf_ecliprepmap_pe.cwl
     in:
-      barcode1r1FastqGz:
-      barcode1r2FastqGz:
-      barcode1rmRepBam:
-      barcode2r1FastqGz:
-      barcode2r2FastqGz:
-      barcode2rmRepBam:
-      barcode1Inputr1FastqGz:
-      barcode1Inputr2FastqGz:
-      barcode1InputrmRepBam:
-      bowtie2_db:
-      fileListFile1:
-      fileListFile2:
-      gencodeGTF:
-      gencodeTableBrowser:
-      repMaskBEDFile:
+      barcode1r1FastqGz: barcode1r1FastqGz
+      barcode1r2FastqGz: barcode1r2FastqGz
+      barcode1rmRepBam: barcode1rmRepBam
+      barcode2r1FastqGz: barcode2r1FastqGz
+      barcode2r2FastqGz: barcode2r2FastqGz
+      barcode2rmRepBam: barcode2rmRepBam
+      barcode1Inputr1FastqGz: barcode1Inputr1FastqGz
+      barcode1Inputr2FastqGz: barcode1Inputr2FastqGz
+      barcode1InputrmRepBam: barcode1InputrmRepBam
+      bowtie2_db: bowtie2_db
+      fileListFile1: fileListFile1
+      fileListFile2: fileListFile2
+      gencodeGTF: gencodeGTF
+      gencodeTableBrowser: gencodeTableBrowser
+      repMaskBEDFile: repMaskBEDFile
     out:
       - output_barcode1_concatenated_pre_rmDup_sam_file
       - output_barcode2_concatenated_pre_rmDup_sam_file
@@ -172,11 +195,13 @@ steps:
       - output_ip_parsed
       - output_input_parsed
 
-  step_regionlevel_enrichment:
+  step_region_level_enrichment:
+    doc: |
+      performs region level enrichment for each gene
     run: wf_region_based_enrichment.cwl
     in:
-      clipBamFile: rep1_clip_bam_file
-      inputBamFile: rep1_input_bam_file
+      clipBamFile: clip_bam_file
+      inputBamFile: input_bam_file
       gencodeGTFFile: gencodeGTF
       gencodeTableBrowserFile: gencodeTableBrowser
     out:
@@ -185,3 +210,15 @@ steps:
       - combinedOutputFile
       - l2fcWithPvalEnrFile
       - l2fcFile
+
+  step_motif_analysis:
+    doc: |
+      runs analyze_motifs and gets kmer and HOMER results.
+    run: motif_analysis.cwl
+    in
+
+    out:
+      - output_pickle_file
+      - output_homer_dir
+      - output_homer_svg_file
+

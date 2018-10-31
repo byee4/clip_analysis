@@ -1,0 +1,106 @@
+#!/usr/bin/env wf_clip_analysis_2_replicates.cwl
+
+svg_output: final_output.svg
+species: hg19
+bowtie2_db:
+  class: File
+  path: inputs/
+fileListFile1:
+  class: File
+  path: inputs/
+fileListFile2:
+  class: File
+  path: inputs/
+
+gencodeGTF:
+  class: File
+  path: inputs/
+gencodeTableBrowser:
+  class: File
+  path: inputs/
+repMaskBEDFile:
+  class: File
+  path: inputs/
+gtfdb_file:
+  class: File
+  path: inputs/
+
+rep1_clip_bam_file:
+  class: File
+  path: inputs/
+rep1_input_bam_file:
+  class: File
+  path: inputs/
+rep1_peak_file:
+  class: File
+  path: inputs/
+
+rep1_barcode1r1FastqGz:
+  class: File
+  path: inputs/
+rep1_barcode1r2FastqGz:
+  class: File
+  path: inputs/
+rep1_barcode1rmRepBam:
+  class: File
+  path: inputs/
+
+rep1_barcode2r1FastqGz:
+  class: File
+  path: inputs/
+rep1_barcode2r2FastqGz:
+  class: File
+  path: inputs/
+rep1_barcode2rmRepBam:
+  class: File
+  path: inputs/
+
+rep1_barcode1Inputr1FastqGz:
+  class: File
+  path: inputs/
+rep1_barcode1Inputr2FastqGz:
+  class: File
+  path: inputs/
+rep1_barcode1InputrmRepBam:
+  class: File
+  path: inputs/
+
+rep2_clip_bam_file:
+  class: File
+  path: inputs/
+rep2_input_bam_file:
+  class: File
+  path: inputs/
+rep2_peak_file:
+  class: File
+  path: inputs/
+
+rep2_barcode1r1FastqGz:
+  class: File
+  path: inputs/
+rep2_barcode1r2FastqGz:
+  class: File
+  path: inputs/
+rep2_barcode1rmRepBam:
+  class: File
+  path: inputs/
+
+rep2_barcode2r1FastqGz:
+  class: File
+  path: inputs/
+rep2_barcode2r2FastqGz:
+  class: File
+  path: inputs/
+rep2_barcode2rmRepBam:
+  class: File
+  path: inputs/
+
+rep2_barcode1Inputr1FastqGz:
+  class: File
+  path: inputs/
+rep2_barcode1Inputr2FastqGz:
+  class: File
+  path: inputs/
+rep2_barcode1InputrmRepBam:
+  class: File
+  path: inputs/

@@ -1,0 +1,65 @@
+#!/usr/bin/env wf_clip_analysis.cwl
+
+species: hg19
+bowtie2_db:
+  class: File
+  path: inputs/
+fileListFile1:
+  class: File
+  path: inputs/
+fileListFile2:
+  class: File
+  path: inputs/
+
+gencodeGTF:
+  class: File
+  path: inputs/
+gencodeTableBrowser:
+  class: File
+  path: inputs/
+repMaskBEDFile:
+  class: File
+  path: inputs/
+gtfdb_file:
+  class: File
+  path: inputs/
+
+clip_bam_file:
+  class: File
+  path: inputs/
+input_bam_file:
+  class: File
+  path: inputs/
+peak_file:
+  class: File
+  path: inputs/
+
+barcode1r1FastqGz:
+  class: File
+  path: inputs/
+barcode1r2FastqGz:
+  class: File
+  path: inputs/
+barcode1rmRepBam:
+  class: File
+  path: inputs/
+
+barcode2r1FastqGz:
+  class: File
+  path: inputs/
+barcode2r2FastqGz:
+  class: File
+  path: inputs/
+barcode2rmRepBam:
+  class: File
+  path: inputs/
+
+barcode1Inputr1FastqGz:
+  class: File
+  path: inputs/
+barcode1Inputr2FastqGz:
+  class: File
+  path: inputs/
+barcode1InputrmRepBam:
+  class: File
+  path: inputs/
