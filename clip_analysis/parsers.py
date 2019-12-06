@@ -5,7 +5,7 @@ import pandas as pd
 import pybedtools
 from collections import defaultdict, OrderedDict
 
-from clip_analysis_legacy import kmerdiff
+# from clip_analysis_legacy import kmerdiff
 
 
 def split_single_cols(df, col, sep='|'):
@@ -96,7 +96,7 @@ def filter_l2fcwithpval_enr(l2fcwithpval_enr, region, l10p, l2fc):
 
     """
     df = read_l2fcwithpval_enr(l2fcwithpval_enr)
-    df = df.filter(regex=("{} *".format(region)))
+    df = df.filter(regex=("{}\s".format(region)))
     df = df[(df['{} l10p'.format(region)] >= l10p) & (df['{} l2fc'.format(region)] >= l2fc)]
     return df
 
@@ -263,6 +263,8 @@ def read_annotated_file(fn, headers=None, src='brian'):
         ]
         df = pd.read_table(fn, names=headers)
         df['region'] = df.apply(return_region_eric, axis=1)
+    elif src == 'eric_v2':
+        pass # TODO: get eric's most up to date version
     else:
         assert 'region' in headers
         df = pd.read_table(fn, names=headers)
